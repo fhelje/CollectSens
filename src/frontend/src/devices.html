@@ -1,0 +1,27 @@
+<template>
+  <div class="row">      
+      <div class="col-12">
+        <h2>Devices</h2>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Id</th>
+              <th>Name</th>
+              <th>Location</th>
+              <th>Value</th>  
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-danger" repeat.for="device of sensors">
+              <th scope="row">${device.status === 0 ? 'Initializing' : 'Ok'}</th>
+              <td><a route-href="route: device; params.bind: { id: device.metadata.deviceId }">${device.metadata.deviceId}</a></td>
+              <td>${device.metadata.name}</td>
+              <td>${device.metadata.location}</td>
+              <td>${device.temperature.value} °C klockan: ${device.timestamp}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+</template>

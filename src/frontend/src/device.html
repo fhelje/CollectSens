@@ -1,0 +1,71 @@
+<template>
+    <require from="./resources/main.css"></require>
+    <a href="/" class="breadcrumb__a">Back</a>
+    <div class="row">
+        <div class="col-sm-4">
+            <blockquote class="blockquote">
+                <h1 class="mb-0">Device: ${name}</h1>
+                <footer class="blockquote-footer">Id: <cite title="Id">${id}</cite></footer>
+                <footer class="blockquote-footer">Position: <cite title="Id">${location}</cite></footer>
+                <footer class="blockquote-footer">Uppdaterad: <span innerhtml.bind="timestamp"></span></footer>
+                <footer class="blockquote-footer">Temperatur: <cite title="Id">${currentTemperature} C</cite></footer>
+            </blockquote>
+        </div>
+        <div class="col-sm-8" style="max-height: 150px; height: 200px;">
+            <chart should-update="true"  style="max-height: 150px; max-width: 100%; height: 150px; width: 100%; display: block" height="200px" width="100%" type="line" data.bind="myData" ></chart>
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-6">
+            <h3>Konfiguration</h3>
+            <hr>
+            <form class="offset-sm-1 col-sm-10">
+                <div class="form-group">
+                    <label for="deviceName">Namn</label>
+                    <input type="text" class="form-control" id="deviceName" placeholder="Namn" value.two-way="name">
+                </div>
+                <div class="form-group">
+                    <label for="location">Plats</label>
+                    <input type="text" class="form-control" id="location" placeholder="Ange plats" value.two-way="location">
+                </div>
+                <div class="form-group">
+                    <label for="intervall">Uppdateringsfrekvens (sek)</label>
+                    <input type="text" class="form-control" id="intervall" placeholder="Intervall i sekunder" value.two-way="interval">
+                </div>
+
+                <div class="form-group">
+                    <label for="exampleTextarea">Example textarea</label>
+                    <textarea class="form-control" id="exampleTextarea" rows="3" value.two-way="description"></textarea>
+                </div>                
+                <button type="submit" class="btn btn-primary" click.trigger="save()">Spara</button>
+            </form>
+        </div>
+        <div class="col-6">
+            <h3>Sensorer</h3>
+            <hr>
+            <div class="offset-sm-1 col-sm-10">
+                <dl class="row">
+                    <dt class="col-sm-3">Temperatur</dt>
+                    <dd class="col-sm-9">Inne</dd>
+                    <dt class="col-sm-3">Luftfuktighet</dt>
+                    <dd class="col-sm-9">Inne</dd>
+                    <dt class="col-sm-3">Barometertryck</dt>
+                    <dd class="col-sm-9">Inne</dd>
+                </dl>
+                <form class="form-inline"> 
+                    <label for="deviceName" class="sr-only">Namn</label>
+                    <input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" id="deviceName" placeholder="Namn" disabled.bind="!sensorEditable">
+                    <label for="sensorType" class="sr-only">Sensor typ</label>
+                    <select class="form-control mb-2 mr-sm-2 mb-sm-0" id="sensorType" disabled.bind="!sensorEditable">
+                        <option>Temperatur</option>
+                        <option>Luftfuktighet</option>
+                        <option>Barometertryck</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary" disabled.bind="!sensorEditable">Spara</button>
+                </form>
+            </div>
+    </div>
+    
+
+</template>
