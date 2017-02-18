@@ -1,2 +1,2 @@
 # CollectSens
-Playground for mycropython dotnetcore 
+Playground for micropython dotnetcore 
