@@ -1,95 +1,57 @@
-import machine
-import time
-import ntptime
+from machine import I2C, Pin, WDT
 import network
+import time
 import esp
-import socket
-import utime
- 
-def temp_c(data):
-    value = data[0] << 8 | data[1]
-    temp = (value & 0xFFF) / 16.0
-    if value & 0x1000:
-        temp -= 256.0
-    return temp
- 
- 
+from adafruit_mcp9808 import MCP9808
+from sensorReporter import SensorReporter
+
+INTERVAL = 10000
+TEMPERATURE_SENSOR_TYPE = 0
+
+
 def do_connect():
-   sta_if = network.WLAN(network.STA_IF)
-   if not sta_if.isconnected():
-       print('connecting to network...')
-       sta_if.active(True)
-       sta_if.connect('heljebrandt', 'aabbccddee')
-       while not sta_if.isconnected():
-           pass
-   print('network config:', sta_if.ifconfig())
- 
- 
-def http_get(url):
-   #try catch retry x times with 10s sleep in between
-   _, _, host, path = url.split('/', 3)
-   do_connect()
-   s = socket.socket()
-   print('Http get to: 192.168.1.198:5000')   
-   s.connect(('192.168.1.198', 5000))
-   s.send(bytes('GET /%s HTTP/1.0\r\nHost: 192.168.1.198:5000\r\n\r\n' % path, 'utf8'))
-   while True:
-       data = s.recv(100)
-       if data:
-           pass
-       else:
-           break
-   s.close()
-   print('Data sent')   
- 
- 
-def gettime():
-    suceeded = False
-    while suceeded == False: 
-        try:
-            tm = utime.localtime(ntptime.time())
-            print('ntp', tm)
-            tm = tm[0:3] + (0,) + tm[3:6] + (0,)
-            machine.RTC().datetime(tm)
-            return utime.localtime()
-        except:
-            time.sleep(1)
+    """ Connect to network and reconnect if not already connected"""
+
+    sta_if = network.WLAN(network.STA_IF)
+    if not sta_if.isconnected():
+        print('connecting to network...')
+        sta_if.active(True)
+        sta_if.connect('heljebrandt', 'aabbccddee')
+        while not sta_if.isconnected():
             pass
- 
- 
-def getUrlEncodedDate():
-       #Needs a try catch
-   (year, month, day, hour, minute, second, x, y) = gettime()
-   return '{0}-{1}-{2}%20{3}%3A{4}%3A{5}'.format(year, month, day, hour, minute, second)
-    #print('Sending')    
-    
- 
-id = '{0:x}'.format(esp.flash_id())
-manufacturer = id[-2:]
-device_id = id[2:4] + id[0:2]
- 
-print('Starting device: ', device_id)
- 
-do_connect()
- 
-i2c = machine.I2C(-1, machine.Pin(5), machine.Pin(4))
-led = machine.Pin(15, machine.Pin.OUT)
-address = 24
-temp_reg = 5
-res_reg = 8
- 
-data = bytearray(2)
- 
-while True:
-    led.high()
-    i2c.readfrom_mem_into(address, temp_reg, data)
-    t = temp_c(data)
-    print('Temp: ', '{0:.1f} C'.format(t))
-    url= 'http://192.168.1.198/api/metric/{0}/0/{1}/{2}'.format(device_id, t, getUrlEncodedDate())
-    try:
-        http_get(url)
-    except:
-        time.sleep(1)
-        print('error connecting')
-    led.low()
-    time.sleep(10)
+    print('network config:', sta_if.ifconfig())
+
+def get_device_id():
+    """ GEt unique id for device"""
+    flash_id = '{0:x}'.format(esp.flash_id())
+    manufacturer = flash_id[-2:]
+    device_id = flash_id[2:4] + flash_id[0:2]
+    return (manufacturer, device_id)
+
+def get_configuration():
+    """Read configuration from config.yml"""
+    return ('192.168.1.198', 5000)
+
+
+def main(sensor, led, watchdog):
+    """Main loop"""
+
+    _, device_id = get_device_id()
+    adress, port = get_configuration()
+
+    temp_sensor = MCP9808(sensor)
+    reporter = SensorReporter(device_id, adress, port)
+    do_connect()
+
+    while True:
+        time.sleep(INTERVAL)
+        led.high()
+        reporter.report(temp_sensor.temperature, TEMPERATURE_SENSOR_TYPE)
+        led.low()
+        # Feed the dog or we will restart
+        watchdog.feed()
+
+with I2C(-1, Pin(5), Pin(4)) as i2c, \
+     Pin(15, Pin.OUT) as pin, \
+     WDT(timeout=INTERVAL*2) as dog:
+    main(i2c, pin, dog)
