@@ -5,26 +5,36 @@ import network
 import esp
 import socket
 import utime
- 
+from adafruit_mcp9808 import MCP9808
+
+
+#setup
+#  read file from fs
+#  network_name: <NAME OF NETWORK>
+#  network_password: <PASSWORD>
+#  MeasurementApi: <ROOT URL>
+
 def temp_c(data):
     value = data[0] << 8 | data[1]
     temp = (value & 0xFFF) / 16.0
     if value & 0x1000:
         temp -= 256.0
     return temp
- 
- 
+
+
 def do_connect():
-   sta_if = network.WLAN(network.STA_IF)
-   if not sta_if.isconnected():
-       print('connecting to network...')
-       sta_if.active(True)
-       sta_if.connect('heljebrandt', 'aabbccddee')
-       while not sta_if.isconnected():
+    """ Connect to network and reconnect if not already connected"""
+
+    sta_if = network.WLAN(network.STA_IF)
+    if not sta_if.isconnected():
+        print('connecting to network...')
+        sta_if.active(True)
+        sta_if.connect('heljebrandt', 'aabbccddee')
+        while not sta_if.isconnected():
            pass
-   print('network config:', sta_if.ifconfig())
- 
- 
+    print('network config:', sta_if.ifconfig())
+
+
 def http_get(url):
    #try catch retry x times with 10s sleep in between
    _, _, host, path = url.split('/', 3)

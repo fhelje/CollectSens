@@ -3,7 +3,7 @@ using Dapper;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
-using MeasurementApi.Models;
+using backend.Models;
 using Microsoft.Extensions.Options;
 
 namespace MeasurementApi.Services.Sensors

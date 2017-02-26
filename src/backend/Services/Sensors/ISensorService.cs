@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using MeasurementApi.Models;
+using backend.Models;
 
 namespace MeasurementApi.Services.Sensors {
     public interface ISensorService

@@ -2,7 +2,6 @@ using MeasurementApi.Services.Sensors;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
-using MeasurementApi.Models;
 
 namespace MeasurementApi.Controllers
 {

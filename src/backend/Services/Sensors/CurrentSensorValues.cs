@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MeasurementApi.Models;
+using backend.Models;
 using Microsoft.Extensions.Logging;
 using Nest;
 
 namespace MeasurementApi.Services.Sensors
 {
     public interface ICurrentSensorValues {
-        Task<bool> SetSensorData(int deviceId, MetricType metricType, decimal value);
+        Task<Device>  SetSensorData(int deviceId, MetricType metricType, decimal value);
+        Task<Device> GetDevice(int deviceId);
         decimal GetSensorData(int deviceId, MetricType metricType);
         IEnumerable<Device> Devices { get; }
     }
@@ -30,7 +31,7 @@ namespace MeasurementApi.Services.Sensors
 
         public IEnumerable<Device> Devices => _deviceCache.Values;
 
-        public async Task<bool> SetSensorData(int deviceId, MetricType metricType, decimal value) {
+        public async Task<Device> SetSensorData(int deviceId, MetricType metricType, decimal value) {
             _logger.LogDebug("Looking for device id {deviceId}", deviceId);
             if (!_deviceCache.ContainsKey(deviceId)) {
                 _logger.LogInformation("No device found");
@@ -38,7 +39,7 @@ namespace MeasurementApi.Services.Sensors
                 _deviceCache[device.DeviceId] = device;
             }
             _deviceCache[deviceId].AddTemperature(value);
-            return true;
+            return _deviceCache[deviceId];
         }
 
         private async Task<Device> GetOrCreateSensor(int deviceId) {
@@ -57,6 +58,10 @@ namespace MeasurementApi.Services.Sensors
             }
             var device = new Device(metadata);
             return device;
+        }
+
+        public async Task<Device> GetDevice(int deviceId) {
+            return await GetOrCreateSensor(deviceId);
         }
 
         public decimal GetSensorData(int deviceId, MetricType metricType) {

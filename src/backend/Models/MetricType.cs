@@ -1,4 +1,4 @@
-namespace MeasurementApi.Models
+namespace backend.Models
 {
     public enum MetricType
     {

@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using MeasurementApi.Models;
 using MeasurementApi.Services.Sensors;
 using System.Threading.Tasks;
+using backend.Models;
 using MeasurementApi.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -36,7 +35,17 @@ namespace MeasurementApi.Controllers
             }
             return new ObjectResult(sensor);
         }
-        
+        [HttpGet("{deviceId}/interval", Name = "GetIntervalForSensor")]
+        public async Task<IActionResult> GetInterval(int deviceId)
+        {
+            var sensor = await _sensorService.Get(deviceId);
+            if (sensor == null)
+            {
+                return NotFound();
+            }
+            return new ObjectResult(10);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody]DeviceMetadata deviceMetadata)
         {
@@ -134,19 +143,5 @@ namespace MeasurementApi.Controllers
                 return null;
             }
         }
-    }
-
-    public class HistogramResult {
-        public int DeviceId { get; set; }
-        public IEnumerable<string> Labels { get; set; }
-        public IEnumerable<decimal?> Values { get; set; }
-        public decimal CurrentTemperature { get; set; }
-        public string Timestamp { get; set; }
-    }
-
-    public class MetricsBucket
-    {
-        public string Key { get; set; }
-        public decimal? Value { get; set;  }
     }
 }
